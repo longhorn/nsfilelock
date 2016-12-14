@@ -6,6 +6,8 @@
 package nsfilelock
 
 import (
+	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,8 +15,9 @@ import (
 )
 
 const (
-	HostNamespace = "/host/proc/1/ns"
-	LockFile      = "/tmp/lock"
+	HostNamespace    = "/host/proc/1/ns"
+	LockFile         = "/tmp/lock"
+	TestAssistBinary = "./bin/test_assist"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -24,7 +27,7 @@ type TestSuite struct {
 
 var _ = Suite(&TestSuite{})
 
-func (s *TestSuite) BasicTest(c *C, ns string) {
+func (s *TestSuite) basicTest(c *C, ns string) {
 	var (
 		l1, l2 *NSFileLock
 		err    error
@@ -47,11 +50,11 @@ func (s *TestSuite) BasicTest(c *C, ns string) {
 }
 
 func (s *TestSuite) TestBasicLock(c *C) {
-	s.BasicTest(c, "")
+	s.basicTest(c, "")
 }
 
 func (s *TestSuite) TestBasicLockInHostNamespace(c *C) {
-	s.BasicTest(c, HostNamespace)
+	s.basicTest(c, HostNamespace)
 }
 
 func (s *TestSuite) TestBasicLockInInvalidNamespace(c *C) {
@@ -82,4 +85,38 @@ func (s *TestSuite) TestWaitForLock(c *C) {
 	l2 = NewLock(HostNamespace, LockFile)
 	err = l2.Lock()
 	c.Assert(err, IsNil)
+}
+
+func (s *TestSuite) lockProcess(c *C, ns string) {
+	var cmd *exec.Cmd
+
+	if ns == "" {
+		cmd = exec.Command(TestAssistBinary, LockFile)
+	} else {
+		cmd = exec.Command(TestAssistBinary, LockFile, ns)
+	}
+	output, err := cmd.Output()
+	c.Assert(strings.TrimSpace(string(output)), Equals, SuccessResponse)
+	c.Assert(err, IsNil)
+}
+
+func (s *TestSuite) lockProcessTest(c *C, ns string) {
+	// Execute twice, and make sure no lock process leftover so the second
+	// time won't timeout
+	s.lockProcess(c, ns)
+	s.lockProcess(c, ns)
+
+	l := NewLock(ns, LockFile)
+	err := l.Lock()
+	c.Assert(err, IsNil)
+
+	l.Unlock()
+}
+
+func (s *TestSuite) TestAutomaticUnlock(c *C) {
+	s.lockProcessTest(c, "")
+}
+
+func (s *TestSuite) TestAutomaticUnlockInHostNamespace(c *C) {
+	s.lockProcessTest(c, HostNamespace)
 }
