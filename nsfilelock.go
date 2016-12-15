@@ -18,12 +18,13 @@ const (
 )
 
 var (
-	Timeout = 15 * time.Second
+	DefaultTimeout = 15 * time.Second
 )
 
 type NSFileLock struct {
 	Namespace string
 	FilePath  string
+	Timeout   time.Duration
 
 	done chan struct{}
 }
@@ -32,6 +33,15 @@ func NewLock(ns string, filepath string) *NSFileLock {
 	return &NSFileLock{
 		Namespace: ns,
 		FilePath:  filepath,
+		Timeout:   DefaultTimeout,
+	}
+}
+
+func NewLockWithTimeout(ns string, filepath string, timeout time.Duration) *NSFileLock {
+	return &NSFileLock{
+		Namespace: ns,
+		FilePath:  filepath,
+		Timeout:   timeout,
 	}
 }
 
@@ -98,7 +108,7 @@ func (l *NSFileLock) Lock() error {
 	}()
 
 	go func() {
-		time.Sleep(Timeout)
+		time.Sleep(l.Timeout)
 		timeout <- struct{}{}
 	}()
 
