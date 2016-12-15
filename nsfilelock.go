@@ -64,7 +64,7 @@ func (l *NSFileLock) Lock() error {
 		cmdline = []string{"nsenter", "--mount=" + nsFD}
 	}
 
-	lockCmd := fmt.Sprintf("\"\"exec 314>%s; flock 314; echo %s; exec sleep 65535\"\"",
+	lockCmd := fmt.Sprintf("\"\"exec 314>%s && flock 314 && echo %s && exec sleep 65535\"\"",
 		l.FilePath, SuccessResponse)
 
 	cmdline = append(cmdline, "bash", "-c", lockCmd)
