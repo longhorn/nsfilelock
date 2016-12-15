@@ -38,6 +38,9 @@ func NewLock(ns string, filepath string) *NSFileLock {
 }
 
 func NewLockWithTimeout(ns string, filepath string, timeout time.Duration) *NSFileLock {
+	if timeout == 0 {
+		timeout = DefaultTimeout
+	}
 	return &NSFileLock{
 		Namespace: ns,
 		FilePath:  filepath,

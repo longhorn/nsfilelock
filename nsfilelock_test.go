@@ -135,7 +135,7 @@ func (s *TestSuite) TestLockWithTimeout(c *C) {
 	ns = ""
 	go func() {
 		var err error
-		l1 = NewLock(ns, LockFile)
+		l1 = NewLockWithTimeout(ns, LockFile, 0)
 		err = l1.Lock()
 		c.Assert(err, IsNil)
 		time.Sleep(5 * time.Second)
