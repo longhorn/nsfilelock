@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yasker/nsfilelock"
+	"github.com/longhorn/nsfilelock"
 )
 
 func main() {
