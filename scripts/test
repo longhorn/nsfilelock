@@ -3,13 +3,10 @@ set -e
 
 cd $(dirname $0)/..
 
-if [ -z bin/test_assist ]
-then
-        ./scripts/build
-fi
-
 echo Running tests
 
-PACKAGES=". $(find -name '*.go' | xargs -I{} dirname {} |  cut -f2 -d/ | sort -u | grep -Ev '(^\.$|.git|.trash-cache|vendor|bin)' | sed -e 's!^!./!' -e 's!$!/...!')"
+PACKAGES=". $(find -name '*.go' | xargs -I{} dirname {} | cut -f2 -d/ | sort -u | grep -Ev '(^\.$|.git|vendor|bin)' | sed -e 's!^!./!' -e 's!$!/...!')"
 
-go test -race -cover -tags=test ${PACKAGES}
+[ "${ARCH}" == "amd64" ] && RACE=-race
+
+go test ${RACE} -cover -coverprofile=coverage.out -tags=test ${PACKAGES}
