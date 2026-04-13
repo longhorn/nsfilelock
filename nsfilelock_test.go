@@ -39,7 +39,7 @@ func (s *TestSuite) basicTest(c *C, ns string) {
 
 	l2 = NewLock(ns, LockFile)
 	err = l2.Lock()
-	c.Assert(err, ErrorMatches, "Timeout waiting for lock")
+	c.Assert(err, ErrorMatches, "timeout waiting for lock")
 
 	l1.Unlock()
 
@@ -60,7 +60,7 @@ func (s *TestSuite) TestBasicLockInHostNamespace(c *C) {
 func (s *TestSuite) TestBasicLockInInvalidNamespace(c *C) {
 	lock := NewLock("/invalidns/", LockFile)
 	err := lock.Lock()
-	c.Assert(err, ErrorMatches, "Invalid namespace fd.*")
+	c.Assert(err, ErrorMatches, "invalid namespace fd.*")
 }
 
 func (s *TestSuite) TestWaitForLock(c *C) {
@@ -131,8 +131,7 @@ func (s *TestSuite) TestLockWithTimeout(c *C) {
 		err    error
 	)
 
-	ns := HostNamespace
-	ns = ""
+	ns := ""
 	go func() {
 		var err error
 		l1 = NewLockWithTimeout(ns, LockFile, 0)
@@ -147,7 +146,7 @@ func (s *TestSuite) TestLockWithTimeout(c *C) {
 
 	l2 = NewLockWithTimeout(ns, LockFile, 3*time.Second)
 	err = l2.Lock()
-	c.Assert(err, ErrorMatches, "Timeout waiting for lock")
+	c.Assert(err, ErrorMatches, "timeout waiting for lock")
 
 	// 3 seconds passed, should unlock in 1 seconds
 	l2 = NewLockWithTimeout(ns, LockFile, 5*time.Second)

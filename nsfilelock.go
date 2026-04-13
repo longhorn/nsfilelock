@@ -59,7 +59,7 @@ func (l *NSFileLock) Lock() error {
 	if l.Namespace != "" {
 		nsFD := filepath.Join(l.Namespace, MountNamespaceFD)
 		if _, err := os.Stat(nsFD); err != nil {
-			return fmt.Errorf("Invalid namespace fd %s: %v", nsFD, err)
+			return fmt.Errorf("invalid namespace fd %s: %v", nsFD, err)
 		}
 		cmdline = []string{"nsenter", "--mount=" + nsFD}
 	}
@@ -118,19 +118,19 @@ func (l *NSFileLock) Lock() error {
 	select {
 	case resp = <-result:
 		if resp != SuccessResponse {
-			return fmt.Errorf("Failed to lock, response: %s, expected %s", resp, SuccessResponse)
+			return fmt.Errorf("failed to lock, response: %s, expected %s", resp, SuccessResponse)
 		}
 	case <-timeout:
-		syscall.Kill(cmd.Process.Pid, syscall.SIGTERM)
-		return fmt.Errorf("Timeout waiting for lock")
+		_ = syscall.Kill(cmd.Process.Pid, syscall.SIGTERM)
+		return fmt.Errorf("timeout waiting for lock")
 	}
 
 	// Wait for unlock
 	go func() {
-		select {
+		select { // nolint: staticcheck
 		case <-l.done:
-			syscall.Kill(cmd.Process.Pid, syscall.SIGTERM)
-			cmd.Wait()
+			_ = syscall.Kill(cmd.Process.Pid, syscall.SIGTERM)
+			_ = cmd.Wait()
 			return
 		}
 	}()
